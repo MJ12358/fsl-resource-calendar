@@ -32,7 +32,7 @@
 		},
 		success: function(events) {
 			viewModel.workTypes = events.reduce((a, c) => {
-				if (a.indexOf(c.WorkType.Name) == -1) {
+				if (c.WorkType && a.indexOf(c.WorkType.Name) == -1) {
 					a.push(c.WorkType.Name);
 				}
 				return a;
@@ -51,7 +51,7 @@
 			if (viewModel.selectedStatus.length > 0 && !viewModel.selectedStatus.includes(record.Status)) {
 				return false;
 			}
-			if (viewModel.selectedType.length > 0 && !viewModel.selectedType.includes(record.WorkType.Name)) {
+			if (record.WorkType && viewModel.selectedType.length > 0 && !viewModel.selectedType.includes(record.WorkType.Name)) {
 				return false;
 			}
 			return new Appointment(record);
@@ -232,7 +232,6 @@
 	//* Full calendar events
 
 	function onViewMount(view, el) {
-    console.log('onViewMount');
 		// move the work type selector into the toolbar
 		let select = document.getElementById('type-select');
 		ELEMENT.querySelector('.fc-header-toolbar .fc-toolbar-chunk:first-of-type').appendChild(select);
@@ -474,7 +473,7 @@
 
 	setInterval(() => {
 		CALENDAR.refetchEvents();
-	}, 10 * 60 * 1000);
+	}, 5 * 60 * 1000);
 
 	// remove tooltip on document click
 	$(document).on('click', () => {
