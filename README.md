@@ -1,2 +1,2 @@
-# fsl-resource-calendar
-A Field Service Lightning calendar displaying service resources and their service appointments.
+# SF-Resource-Calendar
+Service Appointment and Service Resource Calendar.
