@@ -25,24 +25,25 @@ li span {
 	font-size: .75rem;
 }
 
-#calendar_container {
+#calendar-container {
 	display: flex;
 	flex-direction: column;
 	padding: 10px;
 	width: 100%;
 }
 
-#resource_container {
+#resource-container {
 	height: 100%;
 	white-space: nowrap;
 }
 
-#resource_container img {
+#resource-container img {
 	height: 25px;
 	width: 25px;
 }
 
-#resource_container #show-all {
+#resource-container #show-all,
+#resource-container #show-mine {
 	position: sticky;
 	top: 0;
 	z-index: 99;
@@ -78,10 +79,18 @@ li span {
   font-weight: 700;
 }
 
+#search-bar {
+  margin: 0;
+}
+
 /* fullcalendar overrides */
 
 .fc-event-main {
   cursor: pointer;
+}
+
+.fc-toolbar-title {
+  text-align: center;
 }
 
 /* bootstrap overrides */

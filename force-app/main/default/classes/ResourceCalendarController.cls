@@ -27,20 +27,19 @@
 
 public with sharing class ResourceCalendarController {
 
-	@RemoteAction
+  @RemoteAction
 	public static List<ServiceAppointment> getAppointments(Long startTs, Long endTs) {
 		Datetime startTime = Datetime.newInstance(startTs);
 		Datetime endTime = Datetime.newInstance(endTs);
 		return [
-			SELECT Id, AppointmentNumber, SchedStartTime, SchedEndTime, Status, 
+			SELECT Id, Account.Name, AppointmentNumber, SchedStartTime, SchedEndTime, Status, 
 				ArrivalWindowStartTime, ArrivalWindowEndTime, FSL__GanttLabel__c, 
-				City, State, Street, PostalCode, WorkType.Name, 
+				Street, City, State, PostalCode, WorkType.Name, OwnerId, 
 				(SELECT Id, ServiceResourceId, ServiceResource.Name, ServiceResource.FSL__GanttLabel__c FROM ServiceResources)
 			FROM ServiceAppointment 
 			WHERE (SchedStartTime >= :startTime AND SchedEndTime <= :endTime) 
-				OR (ArrivalWindowStartTime >= :startTime AND ArrivalWindowEndTime <= :endTime)
+				OR (ArrivalWindowStartTime >= :startTime AND ArrivalWindowEndTime <= :endTime) 
 			WITH SECURITY_ENFORCED 
-			ORDER BY SchedStartTime, ArrivalWindowStartTime
 		];
 	}
 
@@ -78,11 +77,9 @@ public with sharing class ResourceCalendarController {
 	public static List<String> getStatuses() {
     List<String> result = new List<String>();
     Schema.DescribeFieldResult fieldResult = ServiceAppointment.Status.getDescribe();
-    if (fieldResult.getType() == Schema.DisplayType.PICKLIST || fieldResult.getType() == Schema.DisplayType.MULTIPICKLIST) {
-      for (Schema.PicklistEntry ple : fieldResult.getPicklistValues()) {
-        if (ple.isActive()) {
-          result.add(ple.getLabel());
-        }
+    for (Schema.PicklistEntry ple : fieldResult.getPicklistValues()) {
+      if (ple.isActive()) {
+        result.add(ple.getLabel());
       }
     }
     return result;

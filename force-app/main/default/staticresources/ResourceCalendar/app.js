@@ -1,5 +1,6 @@
 /* global
   $
+  userId
   dayjs
   rivets
   FullCalendar
@@ -13,6 +14,8 @@
 
 (function() {
 	'use strict';
+
+  //* Sources (need this before Config)
 
 	let appointmentSource = {
 		id: 'appointments',
@@ -31,7 +34,13 @@
 			);
 		},
 		success: function(events) {
-			viewModel.workTypes = events.reduce((a, c) => {
+      // put received work types into an array
+			viewModel.workTypes = events.sort((a, b) => {
+        if (a.WorkType) {
+          return a.WorkType.Name > b.WorkType.Name ? 1 : -1;
+        }
+        return 0;
+      }).reduce((a, c) => {
 				if (c.WorkType && a.indexOf(c.WorkType.Name) == -1) {
 					a.push(c.WorkType.Name);
 				}
@@ -42,18 +51,49 @@
 			viewModel.showAlert(event.type, event.message);
 		},
 		eventDataTransform: function(record) {
-			if (viewModel.selectedResource.length > 0 && record.ServiceResources) {
-				let arr = record.ServiceResources.filter(v => viewModel.selectedResource.includes(v.ServiceResourceId));
+      // filter by service resources
+			if (viewModel.selectedResources.length > 0) {
+        if (!record.ServiceResources) {
+          return false;
+        }
+				let arr = record.ServiceResources.filter(v => viewModel.selectedResources.includes(v.ServiceResourceId));
 				if (arr.length === 0) {
 					return false;
 				}
 			}
-			if (viewModel.selectedStatus.length > 0 && !viewModel.selectedStatus.includes(record.Status)) {
-				return false;
-			}
-			if (record.WorkType && viewModel.selectedType.length > 0 && !viewModel.selectedType.includes(record.WorkType.Name)) {
-				return false;
-			}
+      // filter by status
+      if (viewModel.selectedStatuses.length > 0) {
+        if (!record.Status) {
+          return false;
+        }
+        if (!viewModel.selectedStatuses.includes(record.Status)) {
+          return false;
+        }
+      }
+      // filter by work type
+      if (viewModel.selectedWorkTypes.length > 0) {
+        if (!record.WorkType) {
+          return false;
+        }
+        if (!viewModel.selectedWorkTypes.includes(record.WorkType.Name)) {
+          return false;
+        }
+      }
+      // filter by owner
+      if (viewModel.ownerId) {
+        if (!record.OwnerId) {
+          return false;
+        }
+        if (viewModel.ownerId !== record.OwnerId) {
+          return false;
+        }
+      }
+      // filter by search value
+      if (viewModel.searchValue) {
+        if (!record.Account?.Name.toLowerCase().includes(viewModel.searchValue)) {
+          return false;
+        }
+      }
 			return new Appointment(record);
 		}
 	};
@@ -63,14 +103,14 @@
 		color: '#999999',
 		display: 'block',
 		events: function(info, onSuccess, onFailure) {
-			if (viewModel.selectedResource.length === 0) {
+			if (viewModel.selectedResources.length === 0) {
 				onSuccess([]);
 				return;
 			}
 			ResourceCalendarController.getAbsences(
 				info.start.getTime(),
 				info.end.getTime(),
-				viewModel.selectedResource,
+				viewModel.selectedResources,
 				(response, event) => {
 					if (event.status) {
 						onSuccess(response);
@@ -121,10 +161,13 @@
 		}
 	}
 
-	const KEYS = {
-		SELECTED_RESOURCE: 'vf.resourceCalendar.selectedResource',
-		SELECTED_STATUS: 'vf.resourceCalendar.selectedStatus',
-		SELECTED_TYPE: 'vf.resourceCalendar.selectedType'
+  //* Config
+
+  const KEYS = {
+    SELECTED_OWNER: 'vf.resourceCalendar.selectedOwner',
+		SELECTED_RESOURCES: 'vf.resourceCalendar.selectedResources',
+		SELECTED_STATUSES: 'vf.resourceCalendar.selectedStatuses',
+		SELECTED_WORKTYPES: 'vf.resourceCalendar.selectedWorkTypes'
 	};
 	const ELEMENT = document.getElementById('calendar');
 	const CONFIG = {
@@ -186,13 +229,18 @@
 		this.start = record.SchedStartTime || record.ArrivalWindowStartTime;
 		this.end = record.SchedEndTime || record.ArrivalWindowEndTime;
 		this.color = getColor(record.Status);
-		this.title = decodeHtml(record.FSL__GanttLabel__c || record.AppointmentNumber);
+		this.title = decodeHtml(getTitle());
 		this.extendedProps = Object.assign(this.extendedProps || {}, record);
-		this.tooltip = `<b>${record.AppointmentNumber} / ${record.FSL__GanttLabel__c || ''}</b> (${record.Status})<br>`
+		this.tooltip = `<b>${record.AppointmentNumber} / ${getTitle()}</b> (${record.Status})<br>`
+      + `${record.WorkType?.Name}<br>`
 			+ `${getResources()}`
 			+ `${record.Street} ${record.City}, ${record.State} ${record.PostalCode}<br>`
 			+	`${getDates()}`;
 		
+    function getTitle() {
+      return record.FSL__GanttLabel__c || record.Account?.Name || record.AppointmentNumber;
+    }
+
 		function getResources() {
 			let result = '';
 			if (!record.ServiceResources || record.ServiceResources.length <= 0) {
@@ -206,12 +254,12 @@
 
 		function getDates() {
 			if (record.SchedStartTime) {
-				return `Scheduled Start: ${formatDate(record.SchedStartTime)}<br>`
-					+ `Scheduled End: ${formatDate(record.SchedEndTime)}`;
+				return `<b>Scheduled Start:</b> ${formatDate(record.SchedStartTime)}<br>`
+					+ `<b>Scheduled End:</b> ${formatDate(record.SchedEndTime)}`;
 			}
 			if (record.ArrivalWindowStartTime) {
-				return `Arrival Start: ${formatDate(record.ArrivalWindowStartTime)}<br>`
-					+ `Arrival End: ${formatDate(record.ArrivalWindowEndTime)}`;
+				return `<b>Arrival Start:</b> ${formatDate(record.ArrivalWindowStartTime)}<br>`
+					+ `<b>Arrival End:</b> ${formatDate(record.ArrivalWindowEndTime)}`;
 			}
 			return '';
 		}
@@ -224,17 +272,18 @@
 		this.title = record.FSL__GanttLabel__c;
 		this.extendedProps = Object.assign(this.extendedProps || {}, record);
 		this.tooltip = `<b>${record.AbsenceNumber} / ${record.FSL__GanttLabel__c}</b> (${record.Type})<br>`
-			+ `Resource: ${record.Resource.Name}<br>`
-			+ `Start: ${formatDate(record.Start)}<br>`
-			+ `End: ${formatDate(record.End)}`;
+			+ `<b>Start:</b> ${formatDate(record.Start)}<br>`
+			+ `<b>End:</b> ${formatDate(record.End)}`;
 	}
 
-	//* Full calendar events
+	//* Full Calendar Events
 
 	function onViewMount(view, el) {
-		// move the work type selector into the toolbar
-		let select = document.getElementById('type-select');
-		ELEMENT.querySelector('.fc-header-toolbar .fc-toolbar-chunk:first-of-type').appendChild(select);
+		// move extras into the toolbar
+		let workTypeSelect = document.getElementById('worktype-selector');
+		ELEMENT.querySelector('.fc-header-toolbar .fc-toolbar-chunk:first-of-type').appendChild(workTypeSelect);
+    let searchBar = document.getElementById('search-bar');
+		ELEMENT.querySelector('.fc-header-toolbar .fc-toolbar-chunk:last-of-type .btn-group').prepend(searchBar);
 	}
 
 	function onEventDidMount(info) {
@@ -294,7 +343,7 @@
 		});
 	}
 
-	//* View model
+	//* View Model
 
 	function ViewModel() {
 		const self = this;
@@ -303,58 +352,72 @@
 		this.alertTitle = '';
 		this.alertMessage = '';
 
+    this.ownerId = getItem(KEYS.SELECTED_OWNER) || '';
 		this.resources = [];
-		this.selectedResource = getItem(KEYS.SELECTED_RESOURCE) || [];
-		this.selectedStatus = getItem(KEYS.SELECTED_STATUS) || [];
-		this.selectedType = getItem(KEYS.SELECTED_TYPE) || [];
+		this.selectedResources = getItem(KEYS.SELECTED_RESOURCES) || [];
+		this.selectedStatuses = getItem(KEYS.SELECTED_STATUSES) || [];
+		this.selectedWorkTypes = getItem(KEYS.SELECTED_WORKTYPES) || [];
 		this.statuses = [];
 		this.workTypes = [];
+    this.searchValue = '';
 
 		this.onResourceClick = function(event, resourceId) {
 			let foundResource = self.resources.find(a => a.Id === resourceId);
-			let index = self.selectedResource.indexOf(foundResource.Id);
+			let index = self.selectedResources.indexOf(foundResource.Id);
 			if (index != -1) {
-				self.selectedResource.splice(index, 1);
+				self.selectedResources.splice(index, 1);
 			} else {
-				self.selectedResource.push(foundResource.Id);
+				self.selectedResources.push(foundResource.Id);
 			}
 			CALENDAR.refetchEvents();
 			bind.update(self);
-			setItem(KEYS.SELECTED_RESOURCE, self.selectedResource);
+			setItem(KEYS.SELECTED_RESOURCES, self.selectedResources);
 		};
 
 		this.onStatusClick = function(event, status) {
-			let index = self.selectedStatus.indexOf(status);
+			let index = self.selectedStatuses.indexOf(status);
 			if (index != -1) {
-				self.selectedStatus.splice(index, 1);
+				self.selectedStatuses.splice(index, 1);
 			} else {
-				self.selectedStatus.push(status);
+				self.selectedStatuses.push(status);
 			}
 			CALENDAR.refetchEvents();
 			bind.update(self);
-			setItem(KEYS.SELECTED_STATUS, self.selectedStatus);
+			setItem(KEYS.SELECTED_STATUSES, self.selectedStatuses);
 		};
 
-		this.onTypeClick = function(event, type) {
-			let index = self.selectedType.indexOf(type);
+		this.onWorkTypeClick = function(event, type) {
+			let index = self.selectedWorkTypes.indexOf(type);
 			if (type === 'All') {
-				self.selectedType = [];
+				self.selectedWorkTypes = [];
 			} else if (index != -1) {
-				self.selectedType.splice(index, 1);
+				self.selectedWorkTypes.splice(index, 1);
 			} else {
-				self.selectedType.push(type);
+				self.selectedWorkTypes.push(type);
 			}
 			CALENDAR.refetchEvents();
 			bind.update(self);
-			setItem(KEYS.SELECTED_TYPE, self.selectedType);
+			setItem(KEYS.SELECTED_WORKTYPES, self.selectedWorkTypes);
 		};
 
 		this.showAll = function() {
-			self.selectedResource = [];
+			self.selectedResources = [];
+      self.ownerId = '';
 			CALENDAR.refetchEvents();
 			bind.update(self);
-			setItem(KEYS.SELECTED_RESOURCE, self.selectedResource);
+			setItem(KEYS.SELECTED_RESOURCES, self.selectedResources);
 		};
+
+    this.showMine = function() {
+      if (self.ownerId) {
+        self.ownerId = '';
+      } else {
+        self.ownerId = userId;
+      }
+      CALENDAR.refetchEvents();
+      bind.update(self);
+      setItem(KEYS.SELECTED_OWNER, self.ownerId);
+    }
 
 		this.showAlert = function(title, message) {
 			self.alertTitle = title;
@@ -369,6 +432,12 @@
 			self.alertMessage = '';
 			bind.update(self);
 		};
+
+    this.onSearch = function() {
+      self.searchValue = self.searchValue.toLowerCase();
+      CALENDAR.refetchEvents();
+      bind.update(self);
+    }
 
 		//* Getters
 
@@ -453,6 +522,13 @@
 		} catch (ignore) {}
 	}
 
+  //* Initialize
+
+  let viewModel = new ViewModel();
+
+  const CALENDAR = new FullCalendar.Calendar(ELEMENT, CONFIG);
+	CALENDAR.render();
+
 	//* Formatters
 
 	rivets.formatters.formatDate = function(value, format) {
@@ -463,13 +539,11 @@
 		return getColor(status);
 	};
 
-	//* Bind and Init
+  rivets.binders.keyupdelay.callback = viewModel.onSearch;
 
-	let viewModel = new ViewModel();
+	//* Bind
+
 	let bind = rivets.bind(document.body, viewModel);
-
-	const CALENDAR = new FullCalendar.Calendar(ELEMENT, CONFIG);
-	CALENDAR.render();
 
 	setInterval(() => {
 		CALENDAR.refetchEvents();

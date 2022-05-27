@@ -29,13 +29,13 @@
     </section>
 
 		<!-- calendar and statuses -->
-		<section id="calendar_container">
+		<section id="calendar-container">
 			<div id="calendar"></div>
 			<ul id="statuses" class="list-group list-group-horizontal">
 				<li
 					rv-each-status="statuses"
 					rv-on-click="onStatusClick | args status"
-					rv-class-active="selectedStatus | includes status"
+					rv-class-active="selectedStatuses | includes status"
 					class="list-group-item">
 					<span rv-style-background-color="status | getColor" class="status-color"></span>
 					<span>{ status }</span>
@@ -52,15 +52,18 @@
 		</section>
 
 		<!-- resources -->
-		<section id="resource_container">
+		<section id="resource-container">
 			<ul class="list-group list-group-flush">
-				<li id="show-all" rv-on-click="showAll" class="list-group-item">
+				<li id="show-all" rv-on-click="showAll" class="list-group-item" title="Show appointments from all resources.">
 					<div>Show All</div>
+				</li>
+        <li id="show-mine" rv-on-click="showMine" class="list-group-item" rv-class-active="ownerId | != ''" title="Show appointments where you are the owner.">
+					<div>Show Mine</div>
 				</li>
 				<li
 					rv-each-resource="resources"
 					rv-on-click="onResourceClick | args resource.Id"
-					rv-class-active="selectedResource | includes resource.Id"
+					rv-class-active="selectedResources | includes resource.Id"
 					class="list-group-item">
 					<img rv-src="resource.RelatedRecord.SmallPhotoUrl" />
 					<div>{ resource.Name }</div>
@@ -69,17 +72,19 @@
 			</ul>
 		</section>
 
-		<!-- work type select -->
-		<span id="type-select">
-			<button id="type-dropdown" type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+		<!-- work type selector -->
+		<span id="worktype-selector">
+			<button id="worktype-dropdown" type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
 				Work Types
 			</button>
-			<ul class="dropdown-menu" aria-labelledby="type-dropdown">
-				<li class="dropdown-item" rv-on-click="onTypeClick | args 'All'">All</li>
+			<ul class="dropdown-menu" aria-labelledby="worktype-dropdown">
+				<li class="dropdown-item" rv-on-click="onWorkTypeClick | args 'All'" title="Show appointments from all work types.">
+          <div>All</div>
+        </li>
 				<li
 					rv-each-type="workTypes"
-					rv-on-click="onTypeClick | args type"
-					rv-class-active="selectedType | includes type"
+					rv-on-click="onWorkTypeClick | args type"
+					rv-class-active="selectedWorkTypes | includes type"
 					rv-value="type"
 					class="dropdown-item">
 					{ type }
@@ -87,6 +92,16 @@
 			</ul>
 		</span>
 
+    <!-- search bar -->
+    <span id="search-bar">
+      <div class="form-outline">
+        <input rv-keyupdelay="searchValue" class="form-control" placeholder="Search..." />
+      </div>
+    </span>
+
+    <script type="text/javascript">
+      var userId = '{!$User.Id}';
+    </script>
 		<script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'lib/jquery/jquery.min.js')}" />
 		<script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'lib/bootstrap/js/bootstrap.bundle.min.js')}" />
 		<script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'lib/fullcalendar/main.min.js')}" />
