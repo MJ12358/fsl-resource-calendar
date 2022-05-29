@@ -25,7 +25,7 @@
 
     <!-- spinner -->
     <section id="spinner">
-      <div>Loading...</div>
+      <div></div>
     </section>
 
 		<!-- calendar and statuses -->
@@ -67,7 +67,7 @@
 					class="list-group-item">
 					<img rv-src="resource.RelatedRecord.SmallPhotoUrl" />
 					<div>{ resource.Name }</div>
-					<span>{ resource.FSL__GanttLabel__c }</span>
+					<span>{ resource.FSL__GanttLabel__c | or resource.ResourceType }</span>
 				</li>
 			</ul>
 		</section>
@@ -82,12 +82,12 @@
           <div>All</div>
         </li>
 				<li
-					rv-each-type="workTypes"
-					rv-on-click="onWorkTypeClick | args type"
-					rv-class-active="selectedWorkTypes | includes type"
-					rv-value="type"
+					rv-each-worktype="workTypes"
+					rv-on-click="onWorkTypeClick | args worktype.Name"
+					rv-class-active="selectedWorkTypes | includes worktype.Name"
+					rv-value="worktype.Name"
 					class="dropdown-item">
-					{ type }
+					{ worktype.Name }
 				</li>
 			</ul>
 		</span>

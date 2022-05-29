@@ -33,25 +33,11 @@
 				}
 			);
 		},
-		success: function(events) {
-      // put received work types into an array
-			viewModel.workTypes = events.sort((a, b) => {
-        if (a.WorkType) {
-          return a.WorkType.Name > b.WorkType.Name ? 1 : -1;
-        }
-        return 0;
-      }).reduce((a, c) => {
-				if (c.WorkType && a.indexOf(c.WorkType.Name) == -1) {
-					a.push(c.WorkType.Name);
-				}
-				return a;
-			}, []);
-		},
 		failure: function(event) {
 			viewModel.showAlert(event.type, event.message);
 		},
 		eventDataTransform: function(record) {
-      // filter by service resources
+      // filter by service resource
 			if (viewModel.selectedResources.length > 0) {
         if (!record.ServiceResources) {
           return false;
@@ -90,7 +76,7 @@
       }
       // filter by search value
       if (viewModel.searchValue) {
-        if (!record.Account?.Name.toLowerCase().includes(viewModel.searchValue)) {
+        if (!record.Account?.Name.toLowerCase().includes(viewModel.searchValue.toLowerCase())) {
           return false;
         }
       }
@@ -269,11 +255,15 @@
 		this.id = record.Id;
 		this.start = record.Start;
 		this.end = record.End;
-		this.title = record.FSL__GanttLabel__c;
+		this.title = getTitle();
 		this.extendedProps = Object.assign(this.extendedProps || {}, record);
-		this.tooltip = `<b>${record.AbsenceNumber} / ${record.FSL__GanttLabel__c}</b> (${record.Type})<br>`
+		this.tooltip = `<b>${record.AbsenceNumber} / ${getTitle()}</b> (${record.Type})<br>`
 			+ `<b>Start:</b> ${formatDate(record.Start)}<br>`
 			+ `<b>End:</b> ${formatDate(record.End)}`;
+
+    function getTitle() {
+      return record.FSL__GanttLabel__c || record.Type;
+    }
 	}
 
 	//* Full Calendar Events
@@ -323,7 +313,9 @@
 			.reduce((a, c) => {
 				// SF dosent like relationships sent back to it without proper formatting so just filter them out
 				let r = Object.fromEntries(
-					Object.entries(c.extendedProps).filter(([key, value]) => (typeof value === 'string' || typeof value === 'number'))
+					Object.entries(c.extendedProps).filter(function([key, value]) {
+            return (typeof value === 'string' || typeof value === 'number');
+          })
 				);
 				a.push(r);
 				return a;
@@ -332,7 +324,8 @@
 			if (event.status) {
 				let a = document.createElement('a');
 				// this does not work for lengthly csv's
-				a.href = 'data:text/csv;charset=utf-8,' + encodeURI(result);
+        // TODO: something funny is going on with quotation marks here
+				a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(result);
 				a.target = '_blank';
 				a.download = 'ServiceAppointment_Export.csv';
 				a.click();
@@ -405,6 +398,7 @@
       self.ownerId = '';
 			CALENDAR.refetchEvents();
 			bind.update(self);
+      setItem(KEYS.SELECTED_OWNER, self.ownerId);
 			setItem(KEYS.SELECTED_RESOURCES, self.selectedResources);
 		};
 
@@ -417,7 +411,7 @@
       CALENDAR.refetchEvents();
       bind.update(self);
       setItem(KEYS.SELECTED_OWNER, self.ownerId);
-    }
+    };
 
 		this.showAlert = function(title, message) {
 			self.alertTitle = title;
@@ -434,10 +428,8 @@
 		};
 
     this.onSearch = function() {
-      self.searchValue = self.searchValue.toLowerCase();
       CALENDAR.refetchEvents();
-      bind.update(self);
-    }
+    };
 
 		//* Getters
 
@@ -456,6 +448,14 @@
 				self.showAlert(event.type, event.message);
 			}
 		});
+
+    ResourceCalendarController.getWorkTypes((result, event) => {
+      if (event.status) {
+        self.workTypes = result;
+      } else {
+        self.showAlert(event.type, event.message);
+      }
+    });
 
 	}
 

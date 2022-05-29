@@ -42,11 +42,16 @@ li span {
 	width: 25px;
 }
 
-#resource-container #show-all,
-#resource-container #show-mine {
+#resource-container #show-all {
 	position: sticky;
 	top: 0;
 	z-index: 99;
+}
+
+#resource-container #show-mine {
+  position: sticky;
+  top: 49px;
+  z-index: 99;
 }
 
 #statuses li {
@@ -63,6 +68,10 @@ li span {
 	width: 15px;
 }
 
+#search-bar {
+  margin: 0;
+}
+
 #spinner {
   align-items: center;
   background-color: #ffffff;
@@ -75,12 +84,20 @@ li span {
 }
 
 #spinner div {
-  font-size: 2.5rem;
-  font-weight: 700;
+  width: 75px;
+  height: 75px;
+  background-color: #0069d9;
+  animation: spinner 1.2s infinite ease-in-out; 
 }
 
-#search-bar {
-  margin: 0;
+@keyframes spinner {
+  0% {
+    transform: perspective(120px) rotateX(0deg) rotateY(0deg); 
+  } 50% {
+    transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); 
+  } 100% {
+    transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); 
+  } 
 }
 
 /* fullcalendar overrides */

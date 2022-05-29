@@ -40,6 +40,7 @@ public with sharing class ResourceCalendarController {
 			WHERE (SchedStartTime >= :startTime AND SchedEndTime <= :endTime) 
 				OR (ArrivalWindowStartTime >= :startTime AND ArrivalWindowEndTime <= :endTime) 
 			WITH SECURITY_ENFORCED 
+      ORDER BY SchedStartTime, ArrivalWindowStartTime
 		];
 	}
 
@@ -65,7 +66,7 @@ public with sharing class ResourceCalendarController {
 	@RemoteAction
 	public static List<ServiceResource> getResources() {
 		return [
-			SELECT Id, Name, FSL__GanttLabel__c, RelatedRecord.SmallPhotoUrl 
+			SELECT Id, Name, FSL__GanttLabel__c, RelatedRecord.SmallPhotoUrl, RelatedRecord.Title, ResourceType 
 			FROM ServiceResource 
 			WHERE IsActive = true 
 			WITH SECURITY_ENFORCED 
@@ -84,6 +85,16 @@ public with sharing class ResourceCalendarController {
     }
     return result;
 	}
+
+  @RemoteAction
+  public static List<WorkType> getWorkTypes() {
+    return [
+      SELECT Id, Name 
+      FROM WorkType 
+      WITH SECURITY_ENFORCED 
+      ORDER BY Name
+    ];
+  }
 
 	@RemoteAction
 	public static String exportToCsv(String json) {
