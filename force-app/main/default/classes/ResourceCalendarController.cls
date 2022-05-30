@@ -103,8 +103,9 @@ public with sharing class ResourceCalendarController {
 		for (ServiceAppointment sa : data) {
 			Map<String, Object> row = (Map<String, Object>)System.JSON.deserializeUntyped(System.JSON.serialize(sa));
 			for (String key : row.keySet()) {
-				if (row.get(key) != null && row.get(key) instanceof String) {
-					builder.appendField(key, row.get(key));
+        Object value = row.get(key);
+				if (value != null && value instanceof String) {
+					builder.appendField(key, value);
 				}
 			}
 			builder.newRow();

@@ -233,7 +233,7 @@
 				return result;
 			}
 			record.ServiceResources.forEach(v => {
-				result += `${v.ServiceResource.Name} - ${v.ServiceResource.FSL__GanttLabel__c}<br>`;
+				result += `${v.ServiceResource.Name} - ${v.ServiceResource.FSL__GanttLabel__c || v.ServiceResource.Type}<br>`;
 			});
 			return result;
 		}
@@ -324,7 +324,6 @@
 			if (event.status) {
 				let a = document.createElement('a');
 				// this does not work for lengthly csv's
-        // TODO: something funny is going on with quotation marks here
 				a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(result);
 				a.target = '_blank';
 				a.download = 'ServiceAppointment_Export.csv';
@@ -333,7 +332,7 @@
 			} else {
 				viewModel.showAlert(event.type, event.message);
 			}
-		});
+		}, { escape: false });
 	}
 
 	//* View Model
