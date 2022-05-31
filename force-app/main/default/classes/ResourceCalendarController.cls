@@ -46,7 +46,7 @@ public with sharing class ResourceCalendarController {
 			WHERE (SchedStartTime >= :startTime AND SchedEndTime <= :endTime) 
 				OR (ArrivalWindowStartTime >= :startTime AND ArrivalWindowEndTime <= :endTime) 
 			WITH SECURITY_ENFORCED 
-      ORDER BY SchedStartTime, ArrivalWindowStartTime
+      ORDER BY ArrivalWindowStartTime, SchedStartTime 
 		]) {
       results.add(new ServiceAppointmentWrapper(sa));
     }
@@ -126,9 +126,9 @@ public with sharing class ResourceCalendarController {
 
 	@RemoteAction
 	public static String exportToCsv(String json) {
-		List<ServiceAppointment> data = (List<ServiceAppointment>)System.JSON.deserialize(json, List<ServiceAppointment>.class);
+		List<ServiceAppointmentWrapper> data = (List<ServiceAppointmentWrapper>)System.JSON.deserialize(json, List<ServiceAppointmentWrapper>.class);
 		CsvBuilder builder = new CsvBuilder();
-		for (ServiceAppointment sa : data) {
+		for (ServiceAppointmentWrapper sa : data) {
 			Map<String, Object> row = (Map<String, Object>)System.JSON.deserializeUntyped(System.JSON.serialize(sa));
 			for (String key : row.keySet()) {
         Object value = row.get(key);
@@ -141,6 +141,7 @@ public with sharing class ResourceCalendarController {
 		return builder.toString();
 	}
 
+  @TestVisible
   private class ServiceAppointmentWrapper {
     public String Id;
     public String AccountName;
@@ -188,6 +189,7 @@ public with sharing class ResourceCalendarController {
     }
   }
 
+  @TestVisible
   private class ServiceResourceWrapper {
     public String Id;
     public String Name;
@@ -212,6 +214,7 @@ public with sharing class ResourceCalendarController {
     }
   }
 
+  @TestVisible
   private class ResourceAbsenceWrapper {
     public String Id;
     public String AbsenceNumber;
