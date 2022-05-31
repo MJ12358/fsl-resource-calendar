@@ -9,7 +9,7 @@
 
 /* eslint
   no-unused-vars: "warn",
-  no-empty: "warn"
+  no-empty: "off"
 */
 
 (function() {
@@ -42,26 +42,26 @@
         if (!record.ServiceResources) {
           return false;
         }
-				let arr = record.ServiceResources.filter(v => viewModel.selectedResources.includes(v.ServiceResourceId));
+				let arr = record.ServiceResources.filter(v => viewModel.selectedResources.includes(v.Id));
 				if (arr.length === 0) {
 					return false;
 				}
 			}
       // filter by status
       if (viewModel.selectedStatuses.length > 0) {
-        if (!record.Status) {
+        if (!record.StatusCategory) {
           return false;
         }
-        if (!viewModel.selectedStatuses.includes(record.Status)) {
+        if (!viewModel.selectedStatuses.includes(record.StatusCategory)) {
           return false;
         }
       }
       // filter by work type
       if (viewModel.selectedWorkTypes.length > 0) {
-        if (!record.WorkType) {
+        if (!record.WorkTypeName) {
           return false;
         }
-        if (!viewModel.selectedWorkTypes.includes(record.WorkType.Name)) {
+        if (!viewModel.selectedWorkTypes.includes(record.WorkTypeName)) {
           return false;
         }
       }
@@ -76,7 +76,7 @@
       }
       // filter by search value
       if (viewModel.searchValue) {
-        if (!record.Account?.Name.toLowerCase().includes(viewModel.searchValue.toLowerCase())) {
+        if (!record.Label?.toLowerCase().includes(viewModel.searchValue.toLowerCase())) {
           return false;
         }
       }
@@ -214,61 +214,54 @@
 		this.id = record.Id;
 		this.start = record.SchedStartTime || record.ArrivalWindowStartTime;
 		this.end = record.SchedEndTime || record.ArrivalWindowEndTime;
-		this.color = getColor(record.Status);
-		this.title = decodeHtml(getTitle());
+		this.color = getColor(record.StatusCategory);
+		this.title = decodeHtml(record.Label);
 		this.extendedProps = Object.assign(this.extendedProps || {}, record);
-		this.tooltip = `<b>${record.AppointmentNumber} / ${getTitle()}</b> (${record.Status})<br>`
-      + `${record.WorkType?.Name}<br>`
-			+ `${getResources()}`
-			+ `${record.Street} ${record.City}, ${record.State} ${record.PostalCode}<br>`
-			+	`${getDates()}`;
+    this.tooltip = getTooltip({
+      'Number': record.AppointmentNumber,
+      'Status': record.Status,
+      'Work Type': record.WorkTypeName,
+      'Account': record.AccountName,
+      'Address': getAddress(),
+      'Start': formatDate(record.SchedStartTime || record.ArrivalWindowStartTime),
+      'End': formatDate(record.SchedEndTime || record.ArrivalWindowEndTime),
+    }) + getResources();
 		
-    function getTitle() {
-      return record.FSL__GanttLabel__c || record.Account?.Name || record.AppointmentNumber;
+    function getAddress() {
+      let arr = [record.Street, record.City, record.State, record.PostalCode, record.Country];
+      return arr.filter(e => e).join(', ');
     }
 
-		function getResources() {
+    function getResources() {
 			let result = '';
 			if (!record.ServiceResources || record.ServiceResources.length <= 0) {
 				return result;
 			}
 			record.ServiceResources.forEach(v => {
-				result += `${v.ServiceResource.Name} - ${v.ServiceResource.FSL__GanttLabel__c || v.ServiceResource.Type}<br>`;
+				result += `${v.Name} - ${v.Label}<br>`;
 			});
 			return result;
-		}
-
-		function getDates() {
-			if (record.SchedStartTime) {
-				return `<b>Scheduled Start:</b> ${formatDate(record.SchedStartTime)}<br>`
-					+ `<b>Scheduled End:</b> ${formatDate(record.SchedEndTime)}`;
-			}
-			if (record.ArrivalWindowStartTime) {
-				return `<b>Arrival Start:</b> ${formatDate(record.ArrivalWindowStartTime)}<br>`
-					+ `<b>Arrival End:</b> ${formatDate(record.ArrivalWindowEndTime)}`;
-			}
-			return '';
 		}
 	}
 
 	function Absence(record) {
 		this.id = record.Id;
-		this.start = record.Start;
-		this.end = record.End;
-		this.title = getTitle();
+		this.start = record.StartTime;
+		this.end = record.EndTime;
+		this.title = decodeHtml(record.Label);
 		this.extendedProps = Object.assign(this.extendedProps || {}, record);
-		this.tooltip = `<b>${record.AbsenceNumber} / ${getTitle()}</b> (${record.Type})<br>`
-			+ `<b>Start:</b> ${formatDate(record.Start)}<br>`
-			+ `<b>End:</b> ${formatDate(record.End)}`;
-
-    function getTitle() {
-      return record.FSL__GanttLabel__c || record.Type;
-    }
+    this.tooltip = getTooltip({
+      'Number': record.AbsenceNumber,
+      'Type': record.Type,
+      'Resource': `${record.Resource.Name} - ${record.Resource.Label}`,
+      'Start': formatDate(record.StartTime),
+      'End': formatDate(record.EndTime),
+    });
 	}
 
 	//* Full Calendar Events
 
-	function onViewMount(view, el) {
+	function onViewMount() {
 		// move extras into the toolbar
 		let workTypeSelect = document.getElementById('worktype-selector');
 		ELEMENT.querySelector('.fc-header-toolbar .fc-toolbar-chunk:first-of-type').appendChild(workTypeSelect);
@@ -287,6 +280,7 @@
 			trigger: 'hover',
 			container: 'body',
 			html: true,
+      sanitize: false,
 			delay: {
 				show: 500,
 				hide: 100
@@ -313,7 +307,7 @@
 			.reduce((a, c) => {
 				// SF dosent like relationships sent back to it without proper formatting so just filter them out
 				let r = Object.fromEntries(
-					Object.entries(c.extendedProps).filter(function([key, value]) {
+					Object.entries(c.extendedProps).filter(function([, value]) {
             return (typeof value === 'string' || typeof value === 'number');
           })
 				);
@@ -465,6 +459,21 @@
 		txt.innerHTML = html;
 		return txt.value;
 	}
+
+  function getTooltip(object) {
+    let result = '<table>';
+    for (let [key, value] of Object.entries(object)) {
+      if (!key || !value) {
+        continue;
+      }
+      result += `<tr>`;
+      result += `<th>${key}</th>`;
+      result += `<td>${value}</td>`;
+      result += `</tr>`;
+    }
+    result += `</table>`;
+    return result;
+  }
 	
 	function getTzo(ts) {
 		let date = ts ? new Date(parseInt(ts)) : new Date();

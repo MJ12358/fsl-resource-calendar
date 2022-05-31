@@ -121,6 +121,15 @@ li span {
 	white-space: nowrap;
 }
 
+.tooltip-inner table th {
+  padding-right: 10px;
+  text-align: right;
+}
+
+.tooltip-inner table td {
+  text-align: left;
+}
+
 .active {
 	border-color: rgba(0,0,0,.125) !important;
 }

@@ -4,7 +4,8 @@
 
 /* eslint
   no-unused-vars: "warn",
-  no-empty: "warn"
+  no-empty: "off",
+  no-prototype-builtins: "off"
 */
 
 (function() {
@@ -20,15 +21,26 @@
 
 	//* Comparisons
 
-	rivets.formatters['!='] = function(value, arg) {
-		return value != arg;
+	rivets.formatters.isEmpty = function(value) {
+		if (Array.isArray(value) || typeof value === 'string') {
+			return value.length <= 0;
+		} else if (!Array.isArray(value) && typeof value === 'object') {
+			for (var prop in value) {
+				if (value.hasOwnProperty(prop) && value[prop]) {
+					return false;
+				}
+			}
+			return true;
+		} else {
+			return true;
+		}
+	};
+
+	rivets.formatters.isNotEmpty = function(value) {
+		return !rivets.formatters.isEmpty(value);
 	};
 
 	//* Logical functions
-
-	rivets.formatters.or = function(value, args) {
-		return value || args;
-	};
 
 	rivets.formatters.includes = function(value, arg) {
 		if (!(value && value instanceof Array)) {
