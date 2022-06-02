@@ -88,7 +88,7 @@ public with sharing class ResourceCalendarController {
     List<ServiceResourceWrapper> results = new List<ServiceResourceWrapper>();
 
     for (ServiceResource sr : [
-			SELECT Id, Name, FSL__GanttLabel__c, ResourceType, 
+			SELECT Id, Name, FSL__GanttLabel__c, FSL__Picture_Link__c, ResourceType, 
         RelatedRecord.SmallPhotoUrl, RelatedRecord.Title 
 			FROM ServiceResource 
 			WHERE IsActive = true 
@@ -126,6 +126,7 @@ public with sharing class ResourceCalendarController {
 
 	@RemoteAction
 	public static String exportToCsv(String json) {
+    // deserialize ourselves because remote action will utilize strict mode (we have props that dont exist in our class)
 		List<ServiceAppointmentWrapper> data = (List<ServiceAppointmentWrapper>)System.JSON.deserialize(json, List<ServiceAppointmentWrapper>.class);
 		CsvBuilder builder = new CsvBuilder();
 		for (ServiceAppointmentWrapper sa : data) {
@@ -199,10 +200,10 @@ public with sharing class ResourceCalendarController {
     public ServiceResourceWrapper(ServiceResource sr) {
       this.Id = sr.Id;
       this.Name = sr.Name.normalizeSpace();
-      this.Photo = sr.RelatedRecord?.SmallPhotoUrl;      
+      this.Photo = sr.FSL__Picture_Link__c != null ? sr.FSL__Picture_Link__c : sr.RelatedRecord?.SmallPhotoUrl;      
       this.Label = sr.FSL__GanttLabel__c != null 
         ? sr.FSL__GanttLabel__c.normalizeSpace() 
-        : (sr.RelatedRecord.Title != null ? sr.RelatedRecord.Title.normalizeSpace() : sr.ResourceType);
+        : (sr.RelatedRecord?.Title != null ? sr.RelatedRecord.Title.normalizeSpace() : sr.ResourceType);
     }
 
     public ServiceResourceWrapper(AssignedResource ar) {

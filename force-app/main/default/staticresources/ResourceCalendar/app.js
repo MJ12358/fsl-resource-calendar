@@ -30,7 +30,7 @@
 					} else {
 						onFailure(event);
 					}
-				}
+				}, { escape: false }
 			);
 		},
 		failure: function(event) {
@@ -302,7 +302,7 @@
 	}
 
 	function onExportToCsv() {
-		let arr = CALENDAR.getEvents()
+		let data = CALENDAR.getEvents()
 			.filter(v => v.source.id === 'appointments')
 			.reduce((a, c) => {
 				// SF dosent like relationships sent back to it without proper formatting so just filter them out
@@ -311,10 +311,16 @@
             return (typeof value === 'string' || typeof value === 'number');
           })
 				);
+        // VF remoting cannot deserialize long to datetime
+        for (let [key, value] of Object.entries(r)) {
+          if (key.includes('Time')) {
+            r[key] = new Date(value).toISOString();
+          }
+        }
 				a.push(r);
 				return a;
 			}, []);
-		ResourceCalendarController.exportToCsv(JSON.stringify(arr), (result, event) => {
+		ResourceCalendarController.exportToCsv(JSON.stringify(data), (result, event) => {
 			if (event.status) {
 				let a = document.createElement('a');
 				// this does not work for lengthly csv's
