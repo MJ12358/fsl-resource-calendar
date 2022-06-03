@@ -108,4 +108,8 @@
         <apexPage>ResourceCalendar</apexPage>
         <enabled>true</enabled>
     </pageAccesses>
+    <tabSettings>
+        <tab>Resource_Calendar</tab>
+        <visibility>Available</visibility>
+    </tabSettings>
 </PermissionSet>

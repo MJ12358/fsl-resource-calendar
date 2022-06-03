@@ -40,7 +40,7 @@ public with sharing class ResourceCalendarController {
         Street, City, State, PostalCode, Country, 
         ArrivalWindowStartTime, ArrivalWindowEndTime, SchedStartTime, SchedEndTime, 
 				  (SELECT ServiceResourceId, ServiceResource.Name, 
-            ServiceResource.FSL__GanttLabel__c, ServiceResource.ResourceType 
+            ServiceResource.FSL__GanttLabel__c, toLabel(ServiceResource.ResourceType) 
           FROM ServiceResources) 
 			FROM ServiceAppointment 
 			WHERE (SchedStartTime >= :startTime AND SchedEndTime <= :endTime) 
@@ -63,7 +63,7 @@ public with sharing class ResourceCalendarController {
 
     for (ResourceAbsence ra : [
 			SELECT Id, AbsenceNumber, Start, End, Type, FSL__GanttLabel__c,
-        ResourceId, Resource.Name, Resource.ResourceType, Resource.FSL__GanttLabel__c, 
+        ResourceId, Resource.Name, toLabel(Resource.ResourceType), Resource.FSL__GanttLabel__c, 
         Resource.RelatedRecord.SmallPhotoUrl, Resource.RelatedRecord.Title 
       FROM ResourceAbsence 
 			WHERE (Start >= :startTime AND End <= :endTime) AND ResourceId IN :resourceIds 
@@ -88,8 +88,8 @@ public with sharing class ResourceCalendarController {
     List<ServiceResourceWrapper> results = new List<ServiceResourceWrapper>();
 
     for (ServiceResource sr : [
-			SELECT Id, Name, FSL__GanttLabel__c, FSL__Picture_Link__c, ResourceType, 
-        RelatedRecord.SmallPhotoUrl, RelatedRecord.Title 
+			SELECT Id, Name, FSL__GanttLabel__c, FSL__Picture_Link__c, 
+        toLabel(ResourceType), RelatedRecord.SmallPhotoUrl, RelatedRecord.Title 
 			FROM ServiceResource 
 			WHERE IsActive = true 
 			WITH SECURITY_ENFORCED 
@@ -203,7 +203,7 @@ public with sharing class ResourceCalendarController {
       this.Photo = sr.FSL__Picture_Link__c != null ? sr.FSL__Picture_Link__c : sr.RelatedRecord?.SmallPhotoUrl;      
       this.Label = sr.FSL__GanttLabel__c != null 
         ? sr.FSL__GanttLabel__c.normalizeSpace() 
-        : (sr.RelatedRecord?.Title != null ? sr.RelatedRecord.Title.normalizeSpace() : sr.ResourceType);
+        : (sr.RelatedRecord?.Title != null ? sr.RelatedRecord.Title.normalizeSpace() : sr.ResourceType?.normalizeSpace());
     }
 
     public ServiceResourceWrapper(AssignedResource ar) {
@@ -211,7 +211,7 @@ public with sharing class ResourceCalendarController {
       this.Name = ar.ServiceResource.Name.normalizeSpace();
       this.Label = ar.ServiceResource.FSL__GanttLabel__c != null 
         ? ar.ServiceResource.FSL__GanttLabel__c.normalizeSpace() 
-        : ar.ServiceResource.ResourceType;
+        : ar.ServiceResource.ResourceType?.normalizeSpace();
     }
   }
 
