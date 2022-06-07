@@ -78,69 +78,69 @@ public class ResourceCalendarControllerTest {
     insert ra;
   }
 
-	@IsTest
-	static void testGetAppointments() {
-		Test.startTest();
-		List<ResourceCalendarController.ServiceAppointmentWrapper> results = 
-      ResourceCalendarController.getAppointments(startTime.getTime(), endTime.getTime());
-		Test.stopTest();
-		System.assertNotEquals(null, results);
-	}
-
-	@IsTest
-	static void testGetAbsences() {
-    ServiceResource sr = [SELECT Id FROM ServiceResource LIMIT 1];
-
-		Test.startTest();
-		List<ResourceCalendarController.ResourceAbsenceWrapper> results = 
-      ResourceCalendarController.getAbsences(startTime.getTime(), endTime.getTime(), new List<Id>{sr.Id});
-		Test.stopTest();
-		System.assertNotEquals(null, results);
-	}
-
-	@IsTest
-	static void testGetHolidays() {
-		Test.startTest();
-		Map<Date, Holiday> results = 
-      ResourceCalendarController.getHolidays(startTime.getTime(), endTime.getTime());
-		Test.stopTest();
-		System.assertNotEquals(null, results);
-	}
-
-	@IsTest
-	static void testGetResources() {
-		Test.startTest();
-		List<ResourceCalendarController.ServiceResourceWrapper> results = 
-      ResourceCalendarController.getResources();
-		Test.stopTest();
-		System.assertNotEquals(null, results);
-	}
-
-	@IsTest
-	static void testGetStatuses() {
-		Test.startTest();
-		List<String> results = ResourceCalendarController.getStatuses();
-		Test.stopTest();
-		System.assertNotEquals(null, results);
-	}
-
   @IsTest
-  static void testGetWorkTypes() {
+  static void testGetAppointments() {
     Test.startTest();
-    List<WorkType> results = ResourceCalendarController.getWorkTypes();
+    List<ResourceCalendarController.ServiceAppointmentWrapper> results = 
+      ResourceCalendarController.getAppointments(startTime.getTime(), endTime.getTime());
     Test.stopTest();
     System.assertNotEquals(null, results);
   }
 
-	@IsTest
-	static void testExportToCsv() {
+  @IsTest
+  static void testGetAbsences() {
+    ServiceResource sr = [SELECT Id FROM ServiceResource LIMIT 1];
+
+    Test.startTest();
+    List<ResourceCalendarController.ResourceAbsenceWrapper> results = 
+      ResourceCalendarController.getAbsences(startTime.getTime(), endTime.getTime(), new List<Id>{sr.Id});
+    Test.stopTest();
+    System.assertNotEquals(null, results);
+  }
+
+  @IsTest
+  static void testGetHolidays() {
+    Test.startTest();
+    Map<Date, Holiday> results = 
+      ResourceCalendarController.getHolidays(startTime.getTime(), endTime.getTime());
+    Test.stopTest();
+    System.assertNotEquals(null, results);
+  }
+
+  @IsTest
+  static void testGetResources() {
+    Test.startTest();
+    List<ResourceCalendarController.ServiceResourceWrapper> results = 
+      ResourceCalendarController.getResources();
+    Test.stopTest();
+    System.assertNotEquals(null, results);
+  }
+
+  @IsTest
+  static void testGetStatuses() {
+    Test.startTest();
+    List<String> results = ResourceCalendarController.getStatuses();
+    Test.stopTest();
+    System.assertNotEquals(null, results);
+  }
+
+  @IsTest
+  static void testGetWorkTypes() {
+    Test.startTest();
+    List<ResourceCalendarController.WorkTypeWrapper> results = ResourceCalendarController.getWorkTypes();
+    Test.stopTest();
+    System.assertNotEquals(null, results);
+  }
+
+  @IsTest
+  static void testExportToCsv() {
     List<ResourceCalendarController.ServiceAppointmentWrapper> wrapper = 
       ResourceCalendarController.getAppointments(startTime.getTime(), endTime.getTime());
 
-		Test.startTest();
-		String result = ResourceCalendarController.exportToCsv(System.JSON.serialize(wrapper));
-		Test.stopTest();
-		System.assertNotEquals(null, result);
-	}
+    Test.startTest();
+    String result = ResourceCalendarController.exportToCsv(System.JSON.serialize(wrapper));
+    Test.stopTest();
+    System.assertNotEquals(null, result);
+  }
 
 }
