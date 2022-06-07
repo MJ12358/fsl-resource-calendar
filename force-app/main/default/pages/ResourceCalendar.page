@@ -1,96 +1,96 @@
 <apex:page docType="html-5.0" controller="ResourceCalendarController" sidebar="false" showHeader="false" showChat="false" standardStylesheets="false"
  applyHtmlTag="false" applyBodyTag="false" showQuickActionVfHeader="false" readOnly="true">
 
-	<html dir="ltr" lng="en" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <html dir="ltr" lng="en" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 
-	<head>
-		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-		<meta name="robots" content="noindex, nofollow, noodp, noarchive, nosnippet, noimageindex" />
-		<meta http-equiv="Content-Security-Policy" content="default-src 'self';font-src 'self' data:;frame-src 'self';img-src 'self' *.salesforce.com *.content.force.com *.documentforce.com;style-src 'self' 'unsafe-inline';script-src 'self' 'unsafe-inline' 'unsafe-eval';connect-src *.force.com *.visualforce.com" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta name="apple-mobile-web-app-capable" content="yes" />
-		<meta name="apple-mobile-web-app-status-bar-style" content="black" />
-		<meta name="msapplication-TileColor" content="#1b3668" />
-		<meta name="theme-color" content="#ffffff" />
-		<title>Resource Calendar</title>
-		<link rel="icon" sizes="32x32" href="{!URLFOR($Resource.ResourceCalendar, 'assets/favicon_32x32.png')}" />
-		<link rel="icon" sizes="16x16" href="{!URLFOR($Resource.ResourceCalendar, 'assets/favicon_16x16.png')}" />
-		<link rel="stylesheet" type="text/css" href="{!URLFOR($Resource.ResourceCalendar, 'lib/fullcalendar/main.min.css')}" />
-		<link rel="stylesheet" type="text/css" href="{!URLFOR($Resource.ResourceCalendar, 'lib/bootstrap/css/bootstrap.min.css')}" />
-		<link rel="stylesheet" type="text/css" href="{!URLFOR($Resource.ResourceCalendar, 'lib/fontawesome/css/font-awesome.min.css')}" />
-		<link rel="stylesheet" type="text/css" href="{!URLFOR($Resource.ResourceCalendar, 'style.min.css')}" />
-	</head>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="robots" content="noindex, nofollow, noodp, noarchive, nosnippet, noimageindex" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self';font-src 'self' data:;frame-src 'self';img-src 'self' *.salesforce.com *.content.force.com *.documentforce.com;style-src 'self' 'unsafe-inline';script-src 'self' 'unsafe-inline' 'unsafe-eval';connect-src *.force.com *.visualforce.com" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="msapplication-TileColor" content="#1b3668" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>Resource Calendar</title>
+    <link rel="icon" sizes="32x32" href="{!URLFOR($Resource.ResourceCalendar, 'assets/favicon_32x32.png')}" />
+    <link rel="icon" sizes="16x16" href="{!URLFOR($Resource.ResourceCalendar, 'assets/favicon_16x16.png')}" />
+    <link rel="stylesheet" type="text/css" href="{!URLFOR($Resource.ResourceCalendar, 'lib/fullcalendar/main.min.css')}" />
+    <link rel="stylesheet" type="text/css" href="{!URLFOR($Resource.ResourceCalendar, 'lib/bootstrap/css/bootstrap.min.css')}" />
+    <link rel="stylesheet" type="text/css" href="{!URLFOR($Resource.ResourceCalendar, 'lib/fontawesome/css/font-awesome.min.css')}" />
+    <link rel="stylesheet" type="text/css" href="{!URLFOR($Resource.ResourceCalendar, 'style.min.css')}" />
+  </head>
 
-	<body>
+  <body>
 
     <!-- spinner -->
     <section id="spinner">
       <div></div>
     </section>
 
-		<!-- calendar and statuses -->
-		<section id="calendar-container">
-			<div id="calendar"></div>
-			<ul id="statuses" class="list-group list-group-horizontal">
-				<li
-					rv-each-status="statuses"
-					rv-on-click="onStatusClick | args status"
-					rv-class-active="selectedStatuses | includes status"
-					class="list-group-item">
-					<span rv-style-background-color="status | getColor" class="status-color"></span>
-					<span>{ status }</span>
-				</li>
-			</ul>
-			<!-- alert dialog box -->
-			<div rv-show="alertOpen" rv-class-show="alertOpen" class="alert alert-warning alert-dismissible fade" role="alert">
-				<h6>{ alertTitle }</h6>
-				<p>{ alertMessage }</p>
-				<button rv-on-click="closeAlert" type="button" class="close" data-dismiss="alert" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-		</section>
+    <!-- calendar and statuses -->
+    <section id="calendar-container">
+      <div id="calendar"></div>
+      <ul id="statuses" class="list-group list-group-horizontal">
+        <li
+          rv-each-status="statuses"
+          rv-on-click="onStatusClick | args status"
+          rv-class-active="selectedStatuses | includes status"
+          class="list-group-item">
+          <span rv-style-background-color="status | getColor" class="status-color"></span>
+          <span>{ status }</span>
+        </li>
+      </ul>
+      <!-- alert dialog box -->
+      <div rv-show="alertOpen" rv-class-show="alertOpen" class="alert alert-warning alert-dismissible fade" role="alert">
+        <h6>{ alertTitle }</h6>
+        <p>{ alertMessage }</p>
+        <button rv-on-click="closeAlert" type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    </section>
 
-		<!-- resources -->
-		<section id="resource-container">
-			<ul class="list-group list-group-flush">
-				<li id="show-all" rv-on-click="showAll" class="list-group-item" title="Show appointments from all resources.">
-					<div>Show All</div>
-				</li>
+    <!-- resources -->
+    <section id="resource-container">
+      <ul class="list-group list-group-flush">
+        <li id="show-all" rv-on-click="showAll" class="list-group-item" title="Show appointments from all resources.">
+          <div>Show All</div>
+        </li>
         <li id="show-mine" rv-on-click="showMine" class="list-group-item" rv-class-active="ownerId | isNotEmpty" title="Show appointments where you are the owner.">
-					<div>Show Mine</div>
-				</li>
-				<li
-					rv-each-resource="resources"
-					rv-on-click="onResourceClick | args resource.Id"
-					rv-class-active="selectedResources | includes resource.Id"
-					class="list-group-item">
-					<img rv-src="resource.Photo" />
-					<div>{ resource.Name }</div>
-					<span>{ resource.Label }</span>
-				</li>
-			</ul>
-		</section>
+          <div>Show Mine</div>
+        </li>
+        <li
+          rv-each-resource="resources"
+          rv-on-click="onResourceClick | args resource.Id"
+          rv-class-active="selectedResources | includes resource.Id"
+          class="list-group-item">
+          <img rv-src="resource.Photo" />
+          <div>{ resource.Name }</div>
+          <span>{ resource.Label }</span>
+        </li>
+      </ul>
+    </section>
 
-		<!-- work type selector -->
-		<span id="worktype-selector">
-			<button id="worktype-dropdown" type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-				Work Types
-			</button>
-			<ul class="dropdown-menu" aria-labelledby="worktype-dropdown">
-				<li class="dropdown-item" rv-on-click="onWorkTypeClick | args 'All'" title="Show appointments from all work types.">
+    <!-- work type selector -->
+    <span id="worktype-selector">
+      <button id="worktype-dropdown" type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+        Work Types
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="worktype-dropdown">
+        <li class="dropdown-item" rv-on-click="onWorkTypeClick | args 'All'" title="Show appointments from all work types.">
           <div>All</div>
         </li>
-				<li
-					rv-each-worktype="workTypes"
-					rv-on-click="onWorkTypeClick | args worktype.Name"
-					rv-class-active="selectedWorkTypes | includes worktype.Name"
-					rv-value="worktype.Name"
-					class="dropdown-item">
-					{ worktype.Name }
-				</li>
-			</ul>
-		</span>
+        <li
+          rv-each-worktype="workTypes"
+          rv-on-click="onWorkTypeClick | args worktype.Name"
+          rv-class-active="selectedWorkTypes | includes worktype.Name"
+          rv-value="worktype.Name"
+          class="dropdown-item">
+          { worktype.Name }
+        </li>
+      </ul>
+    </span>
 
     <!-- search bar -->
     <span id="search-bar">
@@ -102,15 +102,15 @@
     <script type="text/javascript">
       var userId = '{!$User.Id}';
     </script>
-		<script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'lib/jquery/jquery.min.js')}" />
-		<script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'lib/bootstrap/js/bootstrap.bundle.min.js')}" />
-		<script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'lib/fullcalendar/main.min.js')}" />
-		<script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'lib/rivetsjs/rivets.min.js')}" />
-		<script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'lib/rivetsjs/rivets-stdlib.min.js')}" />
-		<script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'lib/dayjs/day.min.js')}" />
-		<script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'app.min.js')}" />
+    <script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'lib/jquery/jquery.min.js')}" />
+    <script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'lib/bootstrap/js/bootstrap.bundle.min.js')}" />
+    <script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'lib/fullcalendar/main.min.js')}" />
+    <script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'lib/rivetsjs/rivets.min.js')}" />
+    <script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'lib/rivetsjs/rivets-stdlib.min.js')}" />
+    <script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'lib/dayjs/day.min.js')}" />
+    <script type="text/javascript" src="{!URLFOR($Resource.ResourceCalendar, 'app.min.js')}" />
 
-	</body>
+  </body>
 
-	</html>
+  </html>
 </apex:page>
